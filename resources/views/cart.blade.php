@@ -8,7 +8,7 @@
       background-color: var(--beige);
       color: var(--brown);
       line-height: 1.6;
-      padding-top: 80px; /* Ruang untuk navbar fixed */
+      padding-top: 80px; 
     }
 
     .main-container {
@@ -119,6 +119,3 @@ document.getElementById('selectAll').addEventListener('change', function() {
   document.querySelectorAll('.itemCheckbox').forEach(cb => cb.checked = checked);
 });
 </script>
-
-</body>
-</html>

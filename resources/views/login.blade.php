@@ -1,4 +1,6 @@
-
+  @if(session('error'))
+    <div class="alert alert-dangers">{{ session('error') }}</div>
+  @endif
   <title>Login — Chick Chi</title>
 
 <div class="body2">

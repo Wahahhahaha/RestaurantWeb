@@ -101,26 +101,28 @@ class Ctrl extends Controller
         echo view ('home', $banana);
         echo view ('footer');
     }
+public function profile(Request $request){
+    if (session('userid') > 0) {
+        $userid = $request->session()->get('userid');
 
-    public function profile(Request $request){
-        if (session ('userid')>0) {
-            $hola = $request->session()->get('userid');
-            $apple = new Table();
-            $table='user';
-            $table2='buyer';
-            $table3='employer';
-            $on=['user.userid','=','buyer.userid'];
-            $on1=['user.userid','=','employer.userid'];
-            $where = ['user.userid' => $hola];
+        $data = DB::table('user')
+            ->leftJoin('buyer', 'user.userid', '=', 'buyer.userid')
+            ->leftJoin('employer', 'user.userid', '=', 'employer.userid')
+            ->select(
+                'user.userid',
+                'user.username',
+                DB::raw('COALESCE(buyer.email, employer.email) as email'),
+                DB::raw('COALESCE(buyer.phonenumber, employer.phonenumber) as phonenumber')
+            )
+            ->where('user.userid', $userid)
+            ->first();
 
-            $datas ['data']= $apple->joinwhere($table,$table2,$table3,$on,$on1,$where);
-
-            echo view ('header');
-            echo view('profile',$datas);
-        }else{
-            return redirect ('login');
-        }
+        echo view('header');
+        echo view('profile', ['data' => $data]);
+    } else {
+        return redirect('login');
     }
+}
 
     public function edituser($id){
         if (session ('userid')>0) {
@@ -372,7 +374,6 @@ class Ctrl extends Controller
 
         echo view('header');
         echo view('cart',  compact('cart'));
-        echo view('footer');
         } else {
             return redirect('login');
         }
@@ -671,10 +672,9 @@ class Ctrl extends Controller
     public function deleteuser($id){
         $apple= new Table();
         $w=array('userid'=>$id);
-        $ban = $apple->delete('user',$w);
+        $ban = $apple->remove('user',$w);
 
-        $ws=array('userid'=>$id);
-        $bans = $apple->delete('buyer',$ws);
+        $bans = $apple->remove('buyer',$w);
         return redirect('/userdata');
     }
 
