@@ -114,8 +114,5 @@
 </div>
 
 <script>
-document.getElementById('selectAll').addEventListener('change', function() {
-  const checked = this.checked;
-  document.querySelectorAll('.itemCheckbox').forEach(cb => cb.checked = checked);
-});
+check();
 </script>

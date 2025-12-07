@@ -1,104 +1,77 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Daily Report {{ $tanggal }}</title>
-  <style>
-    /* Font formal untuk dokumen cetak */
+<meta charset="UTF-8">
+<title>Daily Report</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    color: #333;
+  }
+
+  h2, h3 {
+    margin-bottom: 6px;
+    color: #444;
+  }
+
+  .summary p {
+    margin: 4px 0;
+    font-size: 16px;
+  }
+
+  hr {
+    margin: 20px 0;
+    border: none;
+    border-top: 1px solid #bbb;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    margin-bottom: 25px;
+  }
+
+  table th {
+    background: #f2f2f2;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #ccc;
+  }
+
+  table td {
+    padding: 10px;
+    border-bottom: 1px solid #e2e2e2;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .empty-row td {
+    text-align: center;
+    font-style: italic;
+    color: #777;
+  }
+
+  /* Print Optimization */
+  @media print {
     body {
-      font-family: "Times New Roman", Times, serif;
-      font-size: 14px;
-      line-height: 1.4;
-      color: #000;
-      max-width: 800px;
-      margin: 0 auto;
+      margin: 0;
       padding: 20px;
     }
-
-    h2, h3 {
-      text-align: center;
-      margin: 20px 0 15px;
-      color: #000;
-    }
-
-    h2 {
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    h3 {
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 25px;
-    }
-
-    /* Summary box */
-    .summary {
-      text-align: center;
-      margin: 15px 0;
-      padding: 10px 0;
-    }
-
-    .summary p {
-      margin: 6px 0;
-      font-weight: bold;
-    }
-
     hr {
-      border: 0;
-      border-top: 1px solid #000;
-      margin: 20px 0;
+      border-color: #777;
     }
+  }
+</style>
 
-    /* Tables */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 15px 0;
-    }
-
-    th {
-      background: #fff;
-      padding: 10px 8px;
-      font-weight: bold;
-      text-align: center;
-      border: 1px solid #000;
-      color: #000;
-    }
-
-    td {
-      padding: 8px;
-      text-align: center;
-      border: 1px solid #000;
-      color: #000;
-    }
-
-    /* Align numbers to right */
-    .text-right {
-      text-align: right !important;
-      padding-right: 10px;
-    }
-
-    /* Empty row */
-    .empty-row td {
-      font-style: italic;
-      color: #000;
-    }
-
-    /* Print optimization */
-    @media print {
-      body {
-        background: white !important;
-        color: black !important;
-      }
-      * {
-        -webkit-print-color-adjust: exact !important;
-        color-adjust: exact !important;
-      }
-    }
-  </style>
 </head>
+
 <body onload="window.print()">
+
   <h2>Daily Report - {{ \Carbon\Carbon::parse($tanggal)->format('d M Y') }}</h2>
 
   <div class="summary">
@@ -109,15 +82,17 @@
 
   <hr>
 
+  <!-- MENU SOLD TABLE -->
   <h3>Menu Sold</h3>
   <table>
     <thead>
       <tr>
-        <th>Menu</th>
+        <th>Menu / Promotion</th>
         <th>Quantity Sold</th>
         <th class="text-right">Total (Rp)</th>
       </tr>
     </thead>
+
     <tbody>
       @forelse ($detailMenu as $item)
         <tr>
@@ -133,6 +108,7 @@
     </tbody>
   </table>
 
+  <!-- EXPENSE TABLE -->
   <h3>Expense</h3>
   <table>
     <thead>
@@ -142,6 +118,7 @@
         <th class="text-right">Daily Cost (Rp)</th>
       </tr>
     </thead>
+
     <tbody>
       @forelse ($detailPengeluaran as $e)
         <tr>
@@ -156,5 +133,6 @@
       @endforelse
     </tbody>
   </table>
+
 </body>
 </html>

@@ -3,21 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Cetak Order #{{ $order->orderid }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h2, h4 { text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .no-border td { border: none; }
-        }
-    </style>
+
 </head>
 
-    <h2>Order Invoice</h2>
-    <h4>Order ID: <?= $order->orderid ?></h4>
+    <h2 style="text-align: center;">Order Invoice</h2>
+    <h4 style="text-align: center;">Order ID: <?= $order->orderid ?></h4>
 
-    <table class="no-border">
+<table class="invoice-table">
         <tr><td><strong>Buyer:</strong></td><td><?= $order->buyer_name ?></td></tr>
         <tr><td><strong>Courier:</strong></td><td><?= $order->courier_name ?? '-' ?></td></tr>
         <tr><td><strong>Order date:</strong></td><td><?= $order->orderdate ?></td></tr>
@@ -25,7 +17,7 @@
     </table>
 
     <br>
-    <table>
+<table class="invoice-table">
         <thead>
             <tr>
                 <th>No</th>

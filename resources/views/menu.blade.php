@@ -152,7 +152,7 @@
         <?php if (session('levelid')==2) { ?>
           <li class="nav-item me-3">
             <a href="/cart" class="nav-link p-0">
-              <img src="cart.png" height="35" class="align-middle" alt="Cart">
+              <img src="cart.png" height="30" class="align-middle" id="Cart">
             </a>
           </li>
         <?php } ?>
@@ -185,7 +185,7 @@
     <div class="list-group list-group-flush">
       <?php if (session('roleid')==1 || session('levelid')==2) { ?>
         <a href="/menu" class="list-group-item list-group-item-action py-3">
-          <i class="bi bi-list me-2"></i> Menu
+          <i class="bi bi-book me-2"></i> Menu
         </a>
         <a href="/promotions" class="list-group-item list-group-item-action py-3">
           <i class="bi bi-megaphone me-2"></i> Promotion

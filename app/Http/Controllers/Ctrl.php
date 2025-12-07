@@ -18,6 +18,17 @@ use Illuminate\Support\Facades\DB;
 
 class Ctrl extends Controller
 {
+
+    public function reloadMenu() {
+    $data = DB::table('menu')->orderBy('menuid', 'DESC')->get();
+
+    // ambil view yang sama, tapi hanya HTML gridnya
+    $html = view('menu')->with(['data' => $data, 'ajax' => true])->render();
+
+    return $html;
+}
+
+
     public function regis(){
         echo view ('header');
         echo view('register');
@@ -95,12 +106,17 @@ class Ctrl extends Controller
 
     public function home(Request $request){
         $apple = new Table();
-        $banana ['menu'] = $apple->show('menu');
+        $menu = DB::table('menu')
+          ->inRandomOrder()
+          ->limit(9)
+          ->get();
+
         echo view ('header');
         echo view ('menu');
-        echo view ('home', $banana);
+        echo view ('home',  compact('menu'));
         echo view ('footer');
     }
+
 public function profile(Request $request){
     if (session('userid') > 0) {
         $userid = $request->session()->get('userid');
@@ -124,26 +140,28 @@ public function profile(Request $request){
     }
 }
 
-    public function edituser($id){
-        if (session ('userid')>0) {
-        $apple = new Table();
-        $baby = "edit"; 
+    public function edituser(Request $request, $id){
+    if (session('userid') > 0) {
+        $userid = $request->session()->get('userid');
 
-        $table='user';
-        $table2='buyer';
-        $table3='employer';
-            $on=['user.userid','=','buyer.userid'];
-            $on1=['user.userid','=','employer.userid'];
-        $where = ['user.userid' => $id];
+        $data = DB::table('user')
+            ->leftJoin('buyer', 'user.userid', '=', 'buyer.userid')
+            ->leftJoin('employer', 'user.userid', '=', 'employer.userid')
+            ->select(
+                'user.userid',
+                'user.username',
+                DB::raw('COALESCE(buyer.email, employer.email) as email'),
+                DB::raw('COALESCE(buyer.phonenumber, employer.phonenumber) as phonenumber')
+            )
+            ->where('user.userid', $userid)
+            ->first();
 
-        $datas = $apple->joinwhere($table,$table2,$table3,$on,$on1,$where);
-        echo view ('header');
-        echo view('inputprofile',compact('baby','datas'));
-        echo view('footer');
-        }else{
-            return redirect('login');
-        }
+        echo view('header');
+        echo view('inputprofile', ['data' => $data]);
+    } else {
+        return redirect('login');
     }
+}
 
     public function updateuser(Request $request,$id){
         if (session ('userid')>0) {
@@ -180,30 +198,31 @@ public function profile(Request $request){
         return redirect('/userdata');
     }
 
-    public function historytransaction(Request $request){
-         if (session('userid') > 0) {
-         $query = DB::table('order')
-            ->where('userid', session('userid'));
-
-        if ($request->filled('date_from') && $request->filled('date_to')) {
-            $query->whereBetween('orderdate', [$request->date_from, $request->date_to]);
-        } elseif ($request->filled('date_from')) {
-            $query->whereDate('orderdate', '>=', $request->date_from);
-        } elseif ($request->filled('date_to')) {
-            $query->whereDate('orderdate', '<=', $request->date_to);
-        }
-
-        $data = $query->orderBy('orderdate', 'desc')->paginate(10);
-        $data->appends($request->all());
-
-        echo view('header');
-        echo view('menu');
-        echo view('history', compact('data'));
-        echo view('footer');
-        } else {
-            return redirect('login');
-        }
+public function historytransaction(Request $request){
+    if (!session('userid')) {
+        return redirect('login');
     }
+
+    $query = DB::table('order')
+        ->where('userid', session('userid'));
+
+    if ($request->filled('date_from') && $request->filled('date_to')) {
+        $query->whereBetween('orderdate', [$request->date_from, $request->date_to]);
+    } elseif ($request->filled('date_from')) {
+        $query->whereDate('orderdate', '>=', $request->date_from);
+    } elseif ($request->filled('date_to')) {
+        $query->whereDate('orderdate', '<=', $request->date_to);
+    }
+
+    $data = $query->orderBy('orderdate', 'desc')->paginate(10);
+    $data->appends($request->all());
+
+
+    echo view('header');
+    echo view('menu');
+    echo view('history', compact('data'));
+    echo view('footer');
+}
 
     public function historydetail($id){
         if (session('userid') > 0) {
@@ -263,6 +282,7 @@ public function profile(Request $request){
             ->select(
                 'promotion.promotionid',
                 'promotion.promotionname',
+                'promotion.menuid',
                 'menu.menuname',
                 'promotion.prices'
             )
@@ -278,20 +298,25 @@ public function profile(Request $request){
                 'promotionid' => $promo->promotionid,
                 'promotionname' => $promo->promotionname,
                 'menus' => [],
+                'prices' => [],
                 'total' => 0
             ];
         }
         $grouped[$cat]['menus'][] = [
+            'menuid' => $promo->menuid,
             'name' => $promo->menuname,
             'price' => $promo->prices
         ];
+         $grouped[$cat]['prices'][$promo->menuid] = $promo->prices;
 
         $grouped[$cat]['total'] += $promo->prices;
     }
+    $ban = DB::table('menu')->get();
 
         echo view('header');
         echo view('menu');
-        echo view('promotion', ['promotions' => $grouped]);
+        echo view('promotion', ['promotions' => $grouped,
+         'ban' => $ban]);
     }
 
    public function addpromo() {
@@ -334,38 +359,114 @@ public function profile(Request $request){
         echo view('footer');
     }
 
+public function savepromo(Request $request, $oldname) {
 
+    $apple = new Table();
+    $newname = $request->input('promotionname'); // nama baru
+    $prices = $request->input('prices');
 
-    public function savepromo(Request $request, $id){
-        $apple = new Table();
-        $promotionname = $request->input('promotionname'); 
-        $prices = $request->input('prices'); 
-
-        if (!$promotionname) {
-            return back()->with('error', 'Promotion name is required.');
-        }
-
-        if ($id && $id != 0) {
-            $apple->remove('promotion', ['promotionname' => $promotionname]);
-        }
-
-        foreach ($prices as $menuid => $price) {
-            if ($price != null && $price > 0) {
-                $apple->add('promotion', [
-                    'promotionname' => $promotionname,
-                    'menuid' => $menuid,
-                    'prices' => $price,
-                ]);
-            }
-        }
-        return redirect('/promotions')->with('success', 'Promotion saved successfully!');
+    if (!$newname) {
+        return response()->json(['error' => 'Promotion name is required'], 422);
     }
+
+    // Hapus data lama berdasarkan nama lama
+    $apple->remove('promotion', ['promotionname' => $oldname]);
+
+    // Insert ulang pakai nama baru
+    $menus = [];
+    $total = 0;
+
+    foreach ($prices as $menuid => $price) {
+        if ($price != null && $price > 0) {
+
+            $apple->add('promotion', [
+                'promotionname' => $newname,
+                'menuid' => $menuid,
+                'prices' => $price,
+            ]);
+
+            $menu = DB::table('menu')->where('menuid', $menuid)->first();
+
+            $menus[] = [
+                'name' => $menu->menuname,
+                'price' => $price
+            ];
+
+            $total += $price;
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'promotionname' => $newname,
+        'menus' => $menus,
+        'prices' => $prices,
+        'total' => $total,
+    ]);
+}
+
+
+public function savepromoadd(Request $request, $id = 0)
+{
+    $apple = new Table(); // class kamu sendiri
+    $promotionname = $request->input('promotionname');
+    $prices = $request->input('prices'); 
+
+    if (!$promotionname) {
+        return response()->json(['error' => 'Promotion name is required'], 422);
+    }
+
+    // Kalau edit promo lama
+    if ($id != 0) {
+        $apple->remove('promotion', ['promotionname' => $promotionname]);
+    }
+
+    $menus = [];
+    $total = 0;
+
+    foreach ($prices as $menuid => $price) {
+        if ($price != null && $price > 0) {
+
+            // simpan ke database
+            $apple->add('promotion', [
+                'promotionname' => $promotionname,
+                'menuid' => $menuid,
+                'prices' => $price,
+            ]);
+
+            // ambil nama menu
+            $menu = DB::table('menu')->where('menuid', $menuid)->first();
+
+            $menus[] = [
+                'name' => $menu->menuname,
+                'price' => $price
+            ];
+
+            $total += $price;
+        }
+    }
+
+    // buat ID baru (kalau kamu butuh)
+    $promotionId = DB::table('promotion')
+                        ->where('promotionname', $promotionname)
+                        ->value('promotionid');
+
+    return response()->json([
+        'success' => true,
+        'id' => $promotionId,
+        'promotionname' => $promotionname,
+        'menus' => $menus,
+        'total' => $total,
+    ]);
+}
+
 
     public function deletepromo($name) {
         $apple = new Table();
         $ws=array('promotionname'=>$name);
         $bans = $apple->remove('promotion',$ws);
-        return redirect('/promotions');
+        return response()->json(['success' => true]);
+
     }
 
     public function cart(Request $request){
@@ -418,12 +519,18 @@ public function profile(Request $request){
         }
 
         session()->put('cart', $cart);
+        $count = array_sum(array_column($cart, 'quantity'));
 
-        return redirect()->back()->with('success', 'Successfully add menu!');
-        }else{
-            return redirect();
+          // Jika request datang lewat AJAX
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'count' => $count
+            ]);
         }
+
     }
+}
 
     public function remove($id){
         $cart = session()->get('cart', []);
@@ -536,23 +643,33 @@ public function profile(Request $request){
 
 
     public function menudata(Request $request){
-         if (session('userid') > 0) {
-        $query = DB::table('menu');
+        if (session('userid') > 0) {
+        $query = DB::table('menu')->orderBy('menuname', 'asc');
+
+        $banana['data'] = $query->paginate(15);
+
+            echo view('header');
+            echo view('menu');
+            echo view('menudata', $banana);
+            echo view('footer');
+        } else {
+            return redirect('login');
+        }
+    }
+
+    public function menudatajson(Request $request){
+         $query = DB::table('menu')->orderBy('menuname', 'asc');
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where('menu.menuname', 'like', "%$search%");
         }
 
-        $banana['data'] = $query->paginate(15);
+                $banana['data'] = $query->paginate(15);
 
-        echo view('header');
-        echo view('menu');
-        echo view('menudata', $banana);
-        echo view('footer');
-        } else {
-            return redirect('login');
-        }
+        return response()->json([
+            "data" => $query->orderBy('menuname')->get()
+        ]);
     }
 
     public function inputmenu($id = null){
@@ -587,9 +704,9 @@ public function profile(Request $request){
 
         $holas = [
             'picture' => $paths,
-            'menuname' => $request->input('n'),
-            'price' => $request->input('p'),
-            'detail' => $request->input('d')
+            'menuname' => $request->input('menuname'),
+            'price' => $request->input('price'),
+            'detail' => $request->input('detail')
         ];
 
         if ($id && $id != 0) {
@@ -597,7 +714,11 @@ public function profile(Request $request){
         } else {
             $apple->add('menu', $holas);
         }
-        return redirect('/menu');
+        return response()->json([
+    'success' => true,
+    'data' => $holas // kirim object menu yang baru disimpan
+]);
+
     }
 
     public function deletemenu($id){
@@ -669,12 +790,69 @@ public function profile(Request $request){
         }
     }
 
+public function userdataJson(Request $request){
+            $query = DB::table('user')
+                ->leftJoin('level', 'user.levelid', '=', 'level.levelid')
+                ->leftJoin('employer', 'user.userid', '=', 'employer.userid')
+                ->leftJoin('role as role_emp', 'employer.roleid', '=', 'role_emp.roleid')
+                ->leftJoin('buyer', 'user.userid', '=', 'buyer.userid')
+                ->select(
+                    'user.userid',
+                    'user.username',
+                    'level.levelname',
+                    DB::raw("COALESCE(role_emp.rolename, 'Buyer') AS rolename"),
+                    DB::raw('COALESCE(employer.email, buyer.email) AS email'),
+                    DB::raw('COALESCE(employer.phonenumber, buyer.phonenumber) AS phonenumber')
+                );
+
+        if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function ($q) use ($search) {
+            $q->where('user.username', 'like', "%$search%")
+              ->orWhere('employer.email', 'like', "%$search%")
+              ->orWhere('buyer.email', 'like', "%$search%")
+              ->orWhere('employer.phonenumber', 'like', "%$search%")
+              ->orWhere('buyer.phonenumber', 'like', "%$search%")
+              ->orWhere('level.levelname', 'like', "%$search%")
+              ->orWhere('role_emp.rolename', 'like', "%$search%");
+
+            if (stripos($search, 'buyer') !== false) {
+                $q->orWhereNotNull('buyer.userid');
+            }
+        });
+        }
+
+            $allowedSortColumns = [
+                'user.userid' => 'user.userid',
+                'user.username' => 'user.username',
+                'level.levelname' => 'level.levelname'
+            ];
+
+            $orderBy = $request->input('order_by', 'user.userid');
+            if (!array_key_exists($orderBy, $allowedSortColumns)) {
+                $orderBy = 'user.userid';
+            }
+
+            $sort = strtolower($request->input('sort', 'asc')) === 'desc' ? 'desc' : 'asc';
+            $query->orderBy($allowedSortColumns[$orderBy], $sort);
+
+            $perPage = 10;
+            $lope = $query->paginate($perPage)
+                ->appends($request->only(['username', 'order_by', 'sort']));
+    return response()->json([
+        'success' => true,
+        'data' => $query->get()
+    ]);
+}
+
     public function deleteuser($id){
         $apple= new Table();
         $w=array('userid'=>$id);
         $ban = $apple->remove('user',$w);
 
         $bans = $apple->remove('buyer',$w);
+        $banss = $apple->remove('employer',$w);
         return redirect('/userdata');
     }
 
@@ -716,6 +894,38 @@ public function profile(Request $request){
         return redirect('/login');
     }
 }
+
+public function reports(Request $request)
+{
+    $data = DB::table('order')
+            ->whereIn('status', ['Paid', 'delivered'])
+            ->selectRaw('MONTH(orderdate) as bulan, YEAR(orderdate) as tahun, MAX(orderdate) as tanggal')
+            ->groupBy('bulan', 'tahun')
+            ->get();
+
+        $bulanTahun = collect($data)
+            ->unique(fn($item) => $item->bulan . '-' . $item->tahun)
+            ->values();
+
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $dateFrom = $request->input('date_from', '0000-00-00');
+            $dateTo = $request->input('date_to', now()->format('Y-m-d'));
+
+            $bulanTahun = $bulanTahun->filter(fn($item) =>
+                $item->tanggal >= $dateFrom && $item->tanggal <= $dateTo
+            );
+        }
+
+        $sort = $request->input('sort', 'desc');
+        $bulanTahun = $sort === 'asc'
+            ? $bulanTahun->sortBy(fn($item) => $item->tahun . str_pad($item->bulan, 2, '0', STR_PAD_LEFT))->values()
+            : $bulanTahun->sortByDesc(fn($item) => $item->tahun . str_pad($item->bulan, 2, '0', STR_PAD_LEFT))->values();
+    return view('report', [
+            'bulanTahun' => $bulanTahun,
+            'sort' => $sort
+        ]);
+}
+
 
     public function monthreport(Request $request){ 
         $bulan = $request->input('bulan', date('m')); 
@@ -874,16 +1084,62 @@ public function profile(Request $request){
         }, 'Financial_report_' . $bulan . '_' . $tahun . '.xlsx');
     }
 
-    public function daily(Request $request){
+public function daily(Request $request){
+    if (session('userid') > 0) {
+
+        // Ambil tanggal dari payment (transaksi sudah dibayar)
+        $tanggalPemasukan = DB::table('payment')
+            ->select(DB::raw('DATE(paymentdate) as tanggal'))
+            ->groupBy(DB::raw('DATE(paymentdate)'))
+            ->pluck('tanggal')
+            ->toArray();
+
+        $tanggalSemua = collect($tanggalPemasukan)
+            ->unique()
+            ->sort()
+            ->values();
+
+        // Filter rentang tanggal
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $tanggalSemua = $tanggalSemua->filter(fn($tgl) =>
+                $tgl >= $request->date_from && $tgl <= $request->date_to
+            );
+        } elseif ($request->filled('date_from')) {
+            $tanggalSemua = $tanggalSemua->filter(fn($tgl) => $tgl >= $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $tanggalSemua = $tanggalSemua->filter(fn($tgl) => $tgl <= $request->date_to);
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'desc');
+        $tanggalSemua = $sort === 'asc'
+            ? $tanggalSemua->sort()->values()
+            : $tanggalSemua->sortDesc()->values();
+
+        echo view('header');
+        echo view('menu');
+        echo view('daily', [
+            'tanggalSemua' => $tanggalSemua,
+            'sort' => $sort,
+            'date_from' => $request->input('date_from'),
+            'date_to' => $request->input('date_to'),
+        ]);
+        echo view('footer');
+
+    } else {
+        return redirect('/login');
+    }
+}
+
+    public function dailys(Request $request){
         if (session('userid') > 0) {
 
             // Ambil hanya tanggal dari order yang Paid atau delivered
-            $tanggalPemasukan = DB::table('order')
-                ->whereIn('status', ['Paid', 'delivered'])
-                ->select(DB::raw('DATE(orderdate) as tanggal'))
-                ->groupBy(DB::raw('DATE(orderdate)'))
-                ->pluck('tanggal')
-                ->toArray();
+            $tanggalPemasukan = DB::table('payment')
+            ->select(DB::raw('DATE(paymentdate) as tanggal'))
+            ->groupBy(DB::raw('DATE(paymentdate)'))
+            ->pluck('tanggal')
+            ->toArray();
 
             $tanggalSemua = collect($tanggalPemasukan)
                 ->unique()
@@ -905,9 +1161,7 @@ public function profile(Request $request){
             $tanggalSemua = $sort === 'asc'
                 ? $tanggalSemua->sort()->values()
                 : $tanggalSemua->sortDesc()->values();
-
             echo view('header');
-            echo view('menu');
             echo view('daily', [
                 'tanggalSemua' => $tanggalSemua,
                 'sort' => $sort,
@@ -920,47 +1174,62 @@ public function profile(Request $request){
         }
     }
 
+public function dailyreport(Request $request)
+{
+    $tanggal = $request->input('tanggal', date('Y-m-d'));
+    $carbonTanggal = \Carbon\Carbon::parse($tanggal);
+    $hariDalamBulan = $carbonTanggal->daysInMonth;
+    $hariKe = $carbonTanggal->day;
+    $isAkhirBulan = $hariKe == $hariDalamBulan;
 
-    public function dailyreport(Request $request){
-        $tanggal = $request->input('tanggal', date('Y-m-d'));
-        $carbonTanggal = \Carbon\Carbon::parse($tanggal);
-        $hariDalamBulan = $carbonTanggal->daysInMonth;
-        $hariKe = $carbonTanggal->day;
-        $isAkhirBulan = $hariKe == $hariDalamBulan;
+    $detailMenu = DB::table('detail')
+        ->join('order', 'detail.orderid', '=', 'order.orderid')
+        ->join('payment', 'payment.orderid', '=', 'order.orderid')  // ← FIX
+        ->leftJoin('menu', 'detail.menuid', '=', 'menu.menuid')
+        ->leftJoin('promotion', 'detail.promotionid', '=', 'promotion.promotionid')
+        ->select(
+            DB::raw("COALESCE(promotion.promotionname, menu.menuname) as menuname"),
+            DB::raw('SUM(detail.orderpcs) as totalpcs'),
+            DB::raw('SUM(
+                CASE 
+                    WHEN detail.promotionid IS NOT NULL THEN promotion.prices * detail.orderpcs
+                    ELSE menu.price * detail.orderpcs
+                END
+            ) as totaltotal')
+        )
+        ->whereDate('payment.paymentdate', $tanggal)
+        ->groupBy(DB::raw("COALESCE(promotion.promotionname, menu.menuname)"))
+        ->get();
 
-        $detailMenu = DB::table('detail')
-            ->join('menu', 'detail.menuid', '=', 'menu.menuid')
-            ->join('order', 'detail.orderid', '=', 'order.orderid')
-            ->select(
-                'menu.menuname',
-                DB::raw('SUM(detail.orderpcs) as totalpcs'),
-                DB::raw('SUM(detail.totalprice) as totaltotal')
-            )
-            ->whereDate('order.orderdate', $tanggal)
-            ->whereIn('order.status', ['Paid', 'delivered'])
-            ->groupBy('menu.menuname')
-            ->get();
+    $pemasukan = $detailMenu->sum('totaltotal');
 
-        $pemasukan = $detailMenu->sum('totaltotal');
+    // expense
+    $expenseBulanan = DB::table('expense')->get();
 
-        $expenseBulanan = DB::table('expense')->get();
+    $detailPengeluaran = $expenseBulanan->map(function ($item) use ($hariDalamBulan, $isAkhirBulan, $tanggal) {
+        $total = $isAkhirBulan
+            ? $item->total
+            : round($item->total / $hariDalamBulan);
 
-        $detailPengeluaran = $expenseBulanan->map(function ($item) use ($hariDalamBulan, $isAkhirBulan, $tanggal) {
-            $total = $isAkhirBulan
-                ? $item->total  
-                : round($item->total / $hariDalamBulan); 
-            return (object)[
-                'expensename' => $item->expensename,
-                'date' => $tanggal,
-                'total' => $total
-            ];
-        });
+        return (object)[
+            'expensename' => $item->expensename,
+            'date' => $tanggal,
+            'total' => $total
+        ];
+    });
 
-        $pengeluaran = $detailPengeluaran->sum('total');
-        $laba = $pemasukan - $pengeluaran;
+    $pengeluaran = $detailPengeluaran->sum('total');
+    $laba = $pemasukan - $pengeluaran;
 
-        return view('dailyreport', compact('tanggal', 'pemasukan', 'pengeluaran', 'laba', 'detailMenu', 'detailPengeluaran'));
-    }
+    return view('dailyreport', compact(
+        'tanggal',
+        'pemasukan',
+        'pengeluaran',
+        'laba',
+        'detailMenu',
+        'detailPengeluaran'
+    ));
+}
 
 
 
@@ -1147,7 +1416,7 @@ public function profile(Request $request){
             ->where('orderid', $orderid)
             ->update(['status' => $request->status]);
 
-        return redirect()->back()->with('success', 'Successfully updated order status!');
+        return response()->json(['success' => true]);
     }
 
 }

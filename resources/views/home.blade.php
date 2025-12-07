@@ -19,7 +19,7 @@
           <p class="menu-desc"><?= htmlspecialchars($key->detail) ?></p>
           <div class="menu-price">Rp <?= number_format($key->price, 0, ',', '.') ?></div>
           <?php if (session('levelid') == 2) { ?>
-            <form action="/addcart" method="post">
+            <form class="addcart-form" action="/addcart" method="post">
               @csrf
               <input type="hidden" name="menuid" value="<?= $key->menuid ?>">
               <input type="hidden" name="menuname" value="<?= htmlspecialchars($key->menuname) ?>">
@@ -43,3 +43,10 @@
     </div>
   </div>
 </section>
+
+<script>
+  //reload();
+  updateCartUI();
+</script>
+@stack('scripts')
+

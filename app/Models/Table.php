@@ -27,9 +27,8 @@ class Table extends Model
         return DB::table($table)->insertGetId($data);
     }
 
-function login($table1, $table2, $table3, $where, $on, $on2)
-{
-    return DB::table($table1)
+    function login($table1, $table2, $table3, $where, $on, $on2){
+        return DB::table($table1)
         ->leftJoin($table2, $on[0], $on[1], $on[2])
         ->leftJoin($table3, $on2[0], $on2[1], $on2[2])
         ->select(
@@ -43,7 +42,7 @@ function login($table1, $table2, $table3, $where, $on, $on2)
         )
         ->where($where)
         ->first();
-}
+    }
 
     function remove($table,$where){
         return DB::table($table)->where($where)->delete();
@@ -62,7 +61,7 @@ function login($table1, $table2, $table3, $where, $on, $on2)
     }
 
     function joinwhere($table1, $table2,$table3, $on ,$on1,$where){
-    return DB::table($table1)
+        return DB::table($table1)
         ->leftjoin($table2, $on[0], $on[1], $on[2])
         ->leftjoin($table3, $on1[0], $on1[1], $on1[2])
         ->where($where)
@@ -71,25 +70,25 @@ function login($table1, $table2, $table3, $where, $on, $on2)
 
     function join3 ($table,$table2,$table3,$on,$on2){
         return DB::table($table)->leftjoin($table2, $on[0], $on[1],$on[2])
-                                ->leftjoin($table3, $on2[0], $on2[1],$on2[2])
-                                ->first();
+        ->leftjoin($table3, $on2[0], $on2[1],$on2[2])
+        ->first();
     }
 
     function join3g ($table,$table2,$table3,$on,$on2){
         return DB::table($table)->leftjoin($table2, $on[0], $on[1],$on[2])
-                                ->leftjoin($table3, $on2[0], $on2[1],$on2[2])
-                                ->get();
+        ->leftjoin($table3, $on2[0], $on2[1],$on2[2])
+        ->get();
     }
 
 
     function join4g ($table,$table2,$table3,$table4,$on,$on2,$on3){
         return DB::table($table)->leftjoin($table2, $on[0], $on[1],$on[2])
-                                ->leftjoin($table3, $on2[0], $on2[1],$on2[2])
-                                ->leftjoin($table4, $on3[0], $on3[1],$on3[2])
-                                ->get();
+        ->leftjoin($table3, $on2[0], $on2[1],$on2[2])
+        ->leftjoin($table4, $on3[0], $on3[1],$on3[2])
+        ->get();
     }
 
     function GetId($table, $data){
-     return DB::table($table)->insertGetId($data);
-    }
+       return DB::table($table)->insertGetId($data);
+   }
 }

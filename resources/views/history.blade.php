@@ -148,9 +148,9 @@
             <td>Rp <?= number_format($key->total, 0, ',', '.') ?></td>
             <td><?= htmlspecialchars($key->status) ?></td>
             <td>
-              <a href="/detailhistory/<?= $key->orderid ?>" class="btn-detail">
+              <button class="btn-detail" onclick="showInvoiceModal('<?= $key->orderid ?>')">
                 <i class="bi bi-eye"></i> View
-              </a>
+              </button>
             </td>
           </tr>
         <?php } ?>
@@ -198,5 +198,13 @@
   <?php } ?>
 </div>
 
-</body>
-</html>
+<div class="modal fade" id="invoiceModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div id="invoiceContent">
+        <!-- AJAX will load invoice HTML here -->
+      </div>
+    </div>
+  </div>
+</div>
+

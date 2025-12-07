@@ -294,22 +294,23 @@
       <h2>Monthly Reports</h2>
     </div>
 
-    <form action="/report" method="GET" class="filter-form">
-      <input type="date" name="date_from" class="date-input" 
-             value="<?= htmlspecialchars(request('date_from') ?? '') ?>">
-      <input type="date" name="date_to" class="date-input" 
-             value="<?= htmlspecialchars(request('date_to') ?? '') ?>">
-      <button type="submit" class="btn-filter">Filter</button>
-      <a href="/report" class="btn-reset">Reset</a>
+<form id="filterForm" action="/report" method="GET" class="filter-form">
+    <input type="date" name="date_from" class="date-input" 
+           value="<?= htmlspecialchars(request('date_from') ?? '') ?>">
 
-      <?php if ($sort === 'asc'): ?>
-        <a href="?sort=desc<?= request('date_from') ? '&date_from=' . urlencode(request('date_from')) : '' ?><?= request('date_to') ? '&date_to=' . urlencode(request('date_to')) : '' ?>" class="btn-sort">Order ↓</a>
-      <?php else: ?>
-        <a href="?sort=asc<?= request('date_from') ? '&date_from=' . urlencode(request('date_from')) : '' ?><?= request('date_to') ? '&date_to=' . urlencode(request('date_to')) : '' ?>" class="btn-sort">Order ↑</a>
-      <?php endif; ?>
-    </form>
+    <input type="date" name="date_to" class="date-input" 
+           value="<?= htmlspecialchars(request('date_to') ?? '') ?>">
 
-    <div style="padding: 0 32px 32px;">
+    <button type="submit" class="btn-filter">Filter</button>
+
+    <a href="/report" class="btn-reset" type="button">Reset</a>
+
+    <a href="#" id="sortBtn" class="btn-sort" data-sort="<?= $sort === 'asc' ? 'desc' : 'asc' ?>">
+        <?= $sort === 'asc' ? 'Order ↓' : 'Order ↑' ?>
+    </a>
+</form>
+
+    <div style="padding: 0 32px 32px;" id="report-table">
       <table class="report-table">
         <thead>
           <tr>
@@ -331,7 +332,8 @@
                   <input type="hidden" name="bulan" value="<?= htmlspecialchars($bt->bulan) ?>">
                   <input type="hidden" name="tahun" value="<?= htmlspecialchars($bt->tahun) ?>">
                   <button type="submit" class="btn-action btn-print">
-                    <i class="bi bi-printer"></i> Print
+                    <i class="bi bi-printe
+                    r"></i> Print
                   </button>
                 </form>
 

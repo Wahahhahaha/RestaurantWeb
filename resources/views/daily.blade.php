@@ -299,19 +299,28 @@
       <h2>Transaction by Date</h2>
     </div>
 
-    <form action="/daily" method="GET" class="filter-form">
-      <input type="date" name="date_from" class="date-input" value="<?= htmlspecialchars($date_from ?? '') ?>">
-      <input type="date" name="date_to" class="date-input" value="<?= htmlspecialchars($date_to ?? '') ?>">
-      <button type="submit" class="btn-filter">Filter</button>
-      <a href="/daily" class="btn-reset">Reset</a>
+<form id="dailyFilterForm" action="/daily" method="GET" class="filter-form">
 
-      <input type="hidden" name="sort" value="<?= $sort === 'asc' ? 'desc' : 'asc' ?>">
-      <button type="submit" class="btn-sort">
-        Order <?= $sort === 'asc' ? '↓' : '↑' ?>
-      </button>
-    </form>
+  <input type="date" name="date_from" class="date-input"
+         value="<?= htmlspecialchars($date_from ?? '') ?>">
 
-    <div style="padding: 0 32px 32px;">
+  <input type="date" name="date_to" class="date-input"
+         value="<?= htmlspecialchars($date_to ?? '') ?>">
+
+  <button type="submit" class="btn-filter">Filter</button>
+
+  <a href="/daily" id="btnDailyReset" class="btn-reset">Reset</a>
+
+  <input type="hidden" name="sort" id="sortField"
+         value="<?= $sort === 'asc' ? 'desc' : 'asc' ?>">
+
+  <button type="button" id="btnDailySort" class="btn-sort">
+    Order <?= $sort === 'asc' ? '↓' : '↑' ?>
+  </button>
+</form>
+
+
+    <div style="padding: 0 32px 32px;" id="dailyTable">
       <table class="report-table">
         <thead>
           <tr>

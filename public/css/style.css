@@ -264,6 +264,7 @@
       text-decoration: none;
       transition: all 0.2s ease;
       text-align: center;
+      border: none;
     }
 
     .btn-edit {
@@ -430,6 +431,7 @@
       text-decoration: none;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       transition: all 0.25s ease;
+      border: none;
     }
 
     .btn-admin-add:hover {
@@ -832,7 +834,7 @@
       border-color: var(--warm-beige);
     }
 
-        .history-table-container {
+    .history-table-container {
       overflow-x: auto;
       border-radius: 20px;
       box-shadow: 0 8px 30px rgba(122, 94, 75, 0.1);
@@ -1133,6 +1135,39 @@
       box-shadow: 0 6px 18px rgba(232, 213, 196, 0.5);
     }
 
+/* Gaya untuk konten modal */
+.custom-modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Gaya untuk body modal */
+.custom-modal-body {
+  padding: 24px;
+  text-align: center;
+  background-color: #fff;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Gaya untuk tombol close */
+.custom-btn-close {
+  background-color: #e53935; /* Merah cerah */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  margin: 12px auto;
+  display: block;
+  transition: background-color 0.3s;
+}
+
+.custom-btn-close:hover {
+  background-color: #c62828; /* Lebih gelap saat hover */
+}
     /* Responsif */
     @media (max-width: 992px) {
       .hero h1 { font-size: 3rem; }
@@ -1623,4 +1658,15 @@
       .register-card h4 {
         font-size: 26px;
       }
+    }
+
+    .invoice-table{
+      width: 100%; border-collapse: collapse; margin-top: 20px;
+    }
+    .invoice-table th{ 
+      border: 1px solid #333; padding: 8px; text-align: left; 
+    }
+
+    .invoice-table td{ 
+      border: 1px solid #333; padding: 8px; text-align: left; 
     }

@@ -376,5 +376,4 @@
   </div>
 </div>
 
-</body>
-</html>
+<script src="/js/data.js"></script>

@@ -3,7 +3,7 @@
 
 <div class="body1">
 <div class="main-container1">
-  <form action="/updateuser/<?= $baby == 'input' ? 0 : $datas->userid ?>" method="post">
+  <form action="/updateuser/<?= $data->userid ?>" method="post">
     @csrf
 
     <div class="edit-profile-card">
@@ -26,9 +26,7 @@
             name="name"
             id="name"
             placeholder="Enter new username"
-            @if($baby=="input")value=""
-            @else value="<?= htmlspecialchars($datas->username) ?>"
-            @endif
+value="<?= htmlspecialchars($data->username) ?>"
             required>
         </div>
 
@@ -40,10 +38,8 @@
             name="email"
             id="email"
             placeholder="Enter new email"
-            @if($baby=="input")value=""
-            @else value="<?= htmlspecialchars($datas->email) ?>"
-            @endif
-            required>
+            value="<?= htmlspecialchars($data->email) ?>" 
+            >
         </div>
 
         <!-- Phone Number -->
@@ -54,9 +50,7 @@
             name="phonenumber"
             id="phonenumber"
             placeholder="Enter new phone number"
-            @if($baby=="input")value=""
-            @else value="<?= htmlspecialchars($datas->phonenumber) ?>"
-            @endif
+            value="<?= htmlspecialchars($data->phonenumber) ?>"
             required>
         </div>
 
@@ -67,7 +61,7 @@
             name="password"
             id="password"
             placeholder="Enter new password"
-            required>
+            >
         </div>
 
         <!-- Tombol Save -->

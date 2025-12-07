@@ -1,7 +1,3 @@
-  @if(session('error'))
-    <div class="alert alert-dangers">{{ session('error') }}</div>
-  @endif
-  <title>Login — Chick Chi</title>
 
 <div class="body2">
   <div class="login-wrapper">
@@ -24,7 +20,7 @@
           <input type="password" id="password" name="p" class="input-field" required>
         </div>
 
-        <button type="submit" class="btn-login">Sign In</button>
+        <button  class="btn-login" type="submit" onclick="LoginError">Log In</button>
       </form>
 
       <div class="divider1">
@@ -38,3 +34,27 @@
     </div>
   </div>
 </div>
+
+
+<div class="modal fade" id="login" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content custom-modal-content">
+      <div class="modal-body custom-modal-body">
+        {{ session('error') }}
+      </div>
+      <button class="btn custom-btn-close" data-bs-dismiss="modal">Ok</button>
+    </div>
+  </div>
+</div>
+
+@if(session('error'))
+<script>
+    LoginError();
+</script>
+@endif
+
+<script>
+  reload();
+</script>
+
+@stack('scripts')

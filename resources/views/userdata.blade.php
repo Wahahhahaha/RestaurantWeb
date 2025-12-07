@@ -347,17 +347,17 @@
 <div class="main-container">
   <!-- Controls -->
   <div class="controls-container">
-    <form action="/userdata" method="GET" class="search-form">
-      <input type="text" name="search" class="search-input" 
-             placeholder="Search by username..." 
-             value="<?= htmlspecialchars(request('search') ?? '') ?>">
+    <form id="searchForm" class="search-form">
+      <input type="text" name="search" id="searchInput" class="search-input" 
+      placeholder="Search by username...">
       <button type="submit" class="search-btn">Search</button>
-      <a href="/userdata" class="reset-btn">Reset</a>
+      <button type="button" id="resetBtn" class="reset-btn">Reset</button>
     </form>
 
+
     <div class="sort-buttons">
-      <a href="?order_by=user.username&sort=asc" class="sort-btn">Username ↑</a>
-      <a href="?order_by=user.username&sort=desc" class="sort-btn">Username ↓</a>
+      <a href="#" class="sort-btn" data-order="user.username" data-sort="asc">Username ↑</a>
+      <a href="#" class="sort-btn" data-order="user.username" data-sort="desc">Username ↓</a>
     </div>
   </div>
 
@@ -443,5 +443,6 @@
   <?php } ?>
 </div>
 
-</body>
-</html>
+<script>
+  reload();
+</script>
